@@ -78,6 +78,9 @@ exclude = '''
   ))
 '''
 
+[tool.pytest.ini_options]
+addopts = "--cov=pcba_helper --cov-report xml"
+
 [tool.isort]
 profile = "black"
 
