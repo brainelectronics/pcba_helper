@@ -1,0 +1,74 @@
+<?php
+
+$errors = [];
+
+function is_post_request(): bool
+{
+    return strtoupper($_SERVER['REQUEST_METHOD']) === 'POST';
+}
+
+function is_get_request(): bool
+{
+    return strtoupper($_SERVER['REQUEST_METHOD']) === 'GET';
+}
+
+function redirect_to(string $url): void
+{
+    header('Location:' . $url);
+    exit;
+}
+
+function redirect_with(string $url, array $items): void
+{
+    foreach ($items as $key => $value) {
+        $_SESSION[$key] = $value;
+    }
+
+    redirect_to($url);
+}
+
+function login(string $username, string $password): bool
+{
+    if ($username == "{{ username }}" && password_verify($password, '{{ generated_password_hash }}')) {
+        // prevent session fixation attack
+        session_regenerate_id();
+
+        // set username in the session
+        $_SESSION['username'] = $username;
+
+        return true;
+    }
+    return false;
+}
+
+function is_user_logged_in(): bool
+{
+    return isset($_SESSION['username']);
+}
+
+function require_login(): void
+{
+    if (!is_user_logged_in()) {
+        $errors['login'] = 'Login required';
+        redirect_with('../index.php', ['errors' => $errors]);
+    }
+}
+
+function logout(): void
+{
+    if (is_user_logged_in()) {
+        unset($_SESSION['username']);
+        session_unset();
+        session_destroy();
+    }
+    redirect_to('../index.php');
+}
+
+function current_user()
+{
+    if (is_user_logged_in()) {
+        return $_SESSION['username'];
+    }
+    return null;
+}
+?>

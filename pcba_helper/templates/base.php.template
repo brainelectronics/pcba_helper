@@ -1,0 +1,11 @@
+<?php
+session_start(['cookie_lifetime' => 86400,]);
+require_once __DIR__ . '/php/auth.php';
+{% if not no_login -%}
+require_login();
+{%- endif %}
+?>
+{{ content }}
+{%- block content %}
+
+{% endblock -%}
