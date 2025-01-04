@@ -1,0 +1,40 @@
+{% extends "base.php.template" %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="static/style.css">
+    <title>Login</title>
+</head>
+<body>
+<main>
+    <?php if (isset($_SESSION["errors"]) && !empty($_SESSION['errors'])) : ?>
+        <div class="alert alert-error">
+            <?= implode('<br>', $_SESSION["errors"]); ?>
+        </div>
+    <?php endif ?>
+
+    <form action="php/login.php" method="post">
+        <h1>Login</h1>
+        <div>
+            <input type="text" name="username" id="username" placeholder="Username">
+        </div>
+        <div>
+            <input type="password" name="password" id="password" placeholder="Password">
+        </div>
+        <button type="submit">Login</button>
+    </form>
+
+    <p>Welcome
+        <?php if (current_user()) : ?>
+            <?= current_user() ?> <a href='php/logout.php'>Logout</a> may have looked for <a href='overview.php'>PCB Index</a>?
+        <? else: ?>
+            Anonymous
+        <?php endif ?>
+    </p>
+</main>
+</body>
+</html>
+{% endblock %}
