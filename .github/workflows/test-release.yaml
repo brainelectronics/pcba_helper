@@ -54,7 +54,13 @@ jobs:
             --debug
 
           jq -r ".info.description" changelog.json > latest_description.txt
+
+          # remove empty lines from the latest_description.txt
           sed -i '/^$/d' latest_description.txt
+
+          # remove the last line if it is a markdown version link, like "[1.2.34]"
+          sed -i '$s/^\[[0-9]*\.[0-9]*\.[0-9]*\]\(.*\)$//' latest_description.txt
+
           echo 'LATEST_DESCRIPTION<<"EOT"' >> $GITHUB_OUTPUT
           cat latest_description.txt >> $GITHUB_OUTPUT
           echo '"EOT"' >> $GITHUB_OUTPUT
@@ -97,5 +103,5 @@ jobs:
           tag_name: ${{ env.latest_version }}-rc${{ github.run_number }}.dev${{ github.event.number }}
           release_name: ${{ env.latest_version }}-rc${{ github.run_number }}.dev${{ github.event.number }}
           body: ${{ steps.update_changelog.outputs.LATEST_DESCRIPTION }}
-          draft: true
+          draft: false
           prerelease: true
