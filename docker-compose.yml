@@ -1,0 +1,49 @@
+---
+
+# - create PDF from project schematic file
+# - generate deploy folder with all required files
+# - start Apache server with PHP to serve website at static IP 172.42.0.2
+
+services:
+  schematic:
+    image: kicad/kicad:7.0.11
+    container_name: create-schematic
+    volumes:
+      - ./examples/KiCAD:/pcb
+    working_dir: /pcb
+    command: bash -c '
+      echo "$(basename $(find . -type f -name "*.kicad_pro"))" | sed "s/\kicad_pro$/\kicad_sch/" | xargs kicad-cli sch export pdf'   # yamllint disable-line rule:line-length
+
+  prepare-deploy:
+    container_name: prepare-files
+    depends_on:
+      schematic:
+        condition: service_completed_successfully
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./examples/KiCAD:/pcb
+    command: bash -c "
+      poetry run generate-deployments /pcb/ --output /pcb/deploy --ibom-file ibom/ibom.html --password 'secret' --username 'John' -vvvvv
+      && cp /pcb/*.pdf /pcb/deploy/"
+
+  php:
+    image: php:8.2-apache
+    container_name: apache-php-deploy-test
+    depends_on:
+      prepare-deploy:
+        condition: service_completed_successfully
+    ports:
+      - "81:80"
+    volumes:
+      - ./examples/KiCAD/deploy:/var/www/html
+    networks:
+      static-network:
+        ipv4_address: 172.42.0.2
+
+networks:
+  static-network:
+    ipam:
+      config:
+        - subnet: 172.42.0.0/16
