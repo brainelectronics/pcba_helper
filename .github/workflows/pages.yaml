@@ -5,11 +5,14 @@
 
 name: Create deployments and publish pages
 
-# on:
-#   push:
-#     branches:
-#       - main
-on: [push]
+# to allow GitHub pages to run on other branches than "main", add additional
+# branches or patterns at
+# Settings -> Environments -> Configure github-pages -> Deployment branches and tags
+
+on:
+  push:
+    branches:
+      - main
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
