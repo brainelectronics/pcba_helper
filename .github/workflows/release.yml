@@ -81,7 +81,7 @@ jobs:
           twine check dist/*.tar.gz
       - name: Publish package
         if: ${{ !contains(fromJson(env.CHANGELOG_JSON).meta.scope, 'internal') }}
-        uses: pypa/gh-action-pypi-publish@release/v1.5
+        uses: pypa/gh-action-pypi-publish@release/v1.12
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
           skip_existing: true
