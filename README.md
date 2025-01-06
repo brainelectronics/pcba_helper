@@ -1,6 +1,6 @@
 # PCBA Helper
 
-[![Downloads](https://pepy.tech/badge/pcba_helper)](https://pepy.tech/project/pcba_helper)
+[![Downloads](https://pepy.tech/badge/pcba-helper)](https://pepy.tech/project/pcba-helper)
 ![Release](https://img.shields.io/github/v/release/brainelectronics/pcba_helper?include_prereleases&color=success)
 ![Python](https://img.shields.io/badge/Python-3.9%20|%203.10%20|%203.11-green.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -48,6 +48,10 @@ generate-deployments examples/KiCAD \
   --password "secret" \
   -vvvv
 ```
+
+The parameter `--public` is optional and creates pure HTML files which can be
+accessed without passing any login page, parameter values of `username` and
+`password` are ignored.
 
 ## Example
 
