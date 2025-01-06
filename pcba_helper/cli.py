@@ -234,7 +234,8 @@ def main() -> int:
         "title": project_name,
         "schematic_name": f"{project_name}.pdf",
         "base_template": "base.template",
-        "public": public
+        "public": public,
+        "web_file_suffix": web_file_suffix,
     }
 
     # render overview page, default after successful login
