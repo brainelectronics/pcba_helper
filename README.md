@@ -60,7 +60,7 @@ the `deploy` folder and fires up an Apache server with PHP at the fixed IP
 address [`172.42.0.2`](http://172.42.0.2).
 
 ```bash
-docker compose up --build
+[PUBLIC=1] docker compose up --build
 docker compose down
 [sudo] rm -rf examples/KiCAD/deploy
 ```
