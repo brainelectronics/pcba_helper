@@ -1,4 +1,4 @@
-{% extends "base.php.template" %}
+{% extends base_template %}
 {% block content %}
 <!DOCTYPE html>
 <html>
@@ -13,12 +13,14 @@
     <button class="w3-bar-item w3-button tablink w3-red" onclick="openTab(event, 'BOM')">BOM</button>
     <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'Schematic')">Schematic</button>
     <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'Changelog')">Changelog</button>
+    {% if not public -%}
     <a href="php/logout.php" class="w3-bar-item w3-button">Logout</a>
+    {%- endif %}
   </div>
 
   <div style="margin-left:130px">
     <div id="BOM" class="w3-container tab" style="display:block;">
-      <iframe src="ibom.php" frameborder="0" style="display:block; width:100%; height:100vh;" title="BOM"></iframe>
+      <iframe src="ibom.{{ web_file_suffix }}" frameborder="0" style="display:block; width:100%; height:100vh;" title="BOM"></iframe>
     </div>
 
     <div id="Schematic" class="w3-container tab" style="display:none;">
@@ -26,7 +28,7 @@
     </div>
 
     <div id="Changelog" class="w3-container tab" style="display:none;">
-      <iframe src="changelog.php" frameborder="0" style="display:block; width:100%; height:100vh;" title="Changelog"></iframe>
+      <iframe src="changelog.{{ web_file_suffix }}" frameborder="0" style="display:block; width:100%; height:100vh;" title="Changelog"></iframe>
     </div>
   </div>
 

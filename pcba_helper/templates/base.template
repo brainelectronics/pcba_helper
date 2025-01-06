@@ -1,3 +1,4 @@
+{%- if not public -%}
 <?php
 session_start(['cookie_lifetime' => 86400,]);
 require_once __DIR__ . '/php/auth.php';
@@ -5,7 +6,7 @@ require_once __DIR__ . '/php/auth.php';
 require_login();
 {%- endif %}
 ?>
-{{ content }}
+{% endif -%}
+{{- content -}}
 {%- block content %}
-
 {% endblock -%}

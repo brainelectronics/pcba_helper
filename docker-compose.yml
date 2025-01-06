@@ -22,10 +22,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    environment:
+      - PUBLIC="${PUBLIC:-1}"
     volumes:
       - ./examples/KiCAD:/pcb
     command: bash -c "
-      poetry run generate-deployments /pcb/ --output /pcb/deploy --ibom-file ibom/ibom.html --password 'secret' --username 'John' -vvvvv
+      poetry run generate-deployments /pcb/ --output /pcb/deploy --ibom-file ibom/ibom.html --password 'secret' --username 'John' -vvvvv $(test '$PUBLIC' == 1 && echo '--public')
       && cp /pcb/*.pdf /pcb/deploy/"
 
   php:
