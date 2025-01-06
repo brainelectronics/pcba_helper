@@ -143,10 +143,10 @@ def render_login_files(args: Args) -> None:
         filename=Path(f"{deploy_location}/index.{web_file_suffix}"),
         content=render(
             env=env,
-            template="index.php.template",
+            template="index.template",
             content={
                 "no_login": True,
-                "base_template": "base.php.template",
+                "base_template": "base.template",
             }
         ),
     )
@@ -167,7 +167,7 @@ def render_login_files(args: Args) -> None:
             content={
                 "generated_password_hash": php_hash,
                 "username": args.username,
-                "base_template": "base.php.template",
+                "base_template": "base.template",
             }),
     )
 
@@ -185,10 +185,10 @@ def render_default_files(args: Args) -> None:
         filename=Path(f"{deploy_location}/changelog.{web_file_suffix}"),
         content=render(
             env=env,
-            template="base.php.template",
+            template="base.template",
             content={
                 "content": html_changelog,
-                "base_template": "base.php.template",
+                "base_template": "base.template",
                 "public": public
             }
         ),
@@ -200,10 +200,10 @@ def render_default_files(args: Args) -> None:
         filename=Path(f"{deploy_location}/ibom.{web_file_suffix}"),
         content=render(
             env=env,
-            template="base.php.template",
+            template="base.template",
             content={
                 "content": html_ibom,
-                "base_template": "base.php.template",
+                "base_template": "base.template",
                 "public": public
             }
         ),
@@ -233,7 +233,7 @@ def main() -> int:
     content = {
         "title": project_name,
         "schematic_name": f"{project_name}.pdf",
-        "base_template": "base.php.template",
+        "base_template": "base.template",
         "public": public
     }
 
@@ -242,7 +242,7 @@ def main() -> int:
         filename=Path(f"{deploy_location}/{'index' if public else 'overview'}.{web_file_suffix}"),
         content=render(
             env=env,
-            template="overview.php.template",
+            template="overview.template",
             content=content,
         ),
     )
