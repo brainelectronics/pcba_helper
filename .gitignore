@@ -8,6 +8,8 @@ changelog.md.new
 
 # changelog2version specific
 changelog.json
+latest-entry.json
+latest_description.txt
 
 # custom, package specific ignores
 .DS_Store
