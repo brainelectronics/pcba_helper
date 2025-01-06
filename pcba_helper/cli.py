@@ -9,7 +9,7 @@ from argparse import Namespace as Args
 from pathlib import Path
 from shutil import copytree
 from sys import stdout
-from typing import Sequence, Union
+from typing import Sequence, Tuple, Union
 
 from jinja2 import Environment, FileSystemLoader
 from markdown import markdown
@@ -31,6 +31,12 @@ logging.basicConfig(level=logging.INFO, format=LOGGER_FORMAT, stream=stdout)
 
 logger = logging.getLogger("pcba_helper")
 logger.setLevel(logging.DEBUG)
+
+_template_folder = (Path(__file__).parent / "templates").resolve()
+env = Environment(
+    loader=FileSystemLoader(searchpath=_template_folder),
+    keep_trailing_newline=True
+)
 
 
 def does_exist(parser: ArgumentParser, arg: str) -> Path:
@@ -82,6 +88,12 @@ def parse_args(argv: Union[Sequence[str], None] = None) -> Args:
         help="Password for secure login",
     )
 
+    parser.add_argument(
+        "--public",
+        action='store_true',
+        help="Create deploy files without login page, password and username are ignored",
+    )
+
     return parser.parse_args(argv)
 
 
@@ -95,65 +107,48 @@ def extract_version() -> str:
         return importlib.metadata.version("pcba_helper")
 
 
-def main() -> int:
-    """Entry point for everything else"""
-    args = parse_args()
+def copy_static_files(template_folder: Path, deploy_location: Path, public: bool) -> None:
+    if not public:
+        # copy php folder and the files contained
+        copytree(
+            src=template_folder / "php",
+            dst=Path(f"{deploy_location}/php"),
+            dirs_exist_ok=True
+        )
 
-    log_level = LOG_LEVELS[min(args.verbose, max(LOG_LEVELS.keys()))]
-    logger.setLevel(level=log_level)
-    logger.debug(f"{args}, {log_level}")
-
-    repo_root = args.root.resolve()
-    deploy_location = args.output.resolve()
-    ibom_file = (repo_root / args.ibom_file).resolve()
-    logger.debug(f"Repo root: {repo_root}")
-    logger.debug(f"Deploy location: {deploy_location}")
-    logger.debug(f"iBOM: {ibom_file}")
-
-    _template_folder = (Path(__file__).parent / "templates").resolve()
-    _overview_template = "overview.php.template"
-    _php_index_template = "index.php.template"
-    _php_auth_template = "auth.php.template"
-    _php_template = "base.php.template"
-    _env = Environment(
-        loader=FileSystemLoader(searchpath=_template_folder),
-        keep_trailing_newline=True
+    # copy static folder and the files contained
+    copytree(
+        src=template_folder / "static",
+        dst=Path(f"{deploy_location}/static"),
+        dirs_exist_ok=True
     )
 
-    kicad_files = [x for x in repo_root.glob("*.kicad_pro") if x.is_file()]
-    assert len(kicad_files) == 1
-    logger.debug(f"Found KiCAD project file: {kicad_files[0]}")
-    project_name = kicad_files[0].stem
+def resolve_paths(args: Args) -> Tuple[Path, Path]:
+    return args.root.resolve(), args.output.resolve()
 
-    content = {
-        "title": project_name,
-        "schematic_name": f"{project_name}.pdf"
-    }
 
-    # render overview page, default after successful login
-    save_file(
-        filename=Path(f"{deploy_location}/overview.php"),
-        content=render(env=_env, template=_overview_template, content=content),
-    )
+def get_web_file_suffix(args: Args) -> str:
+    if args.public:
+        return "html"
+    else:
+        return "php"
 
-    # render changelog page
-    html_changelog = markdown(read_file(filename=Path(f"{repo_root}/changelog.md")))
-    save_file(
-        filename=Path(f"{deploy_location}/changelog.php"),
-        content=render(env=_env, template=_php_template, content={"content": html_changelog}),
-    )
 
-    # render ibom page
-    html_ibom = read_file(filename=ibom_file)
-    save_file(
-        filename=Path(f"{deploy_location}/ibom.php"),
-        content=render(env=_env, template=_php_template, content={"content": html_ibom}),
-    )
+def render_login_files(args: Args) -> None:
+    repo_root, deploy_location = resolve_paths(args=args)
+    web_file_suffix = get_web_file_suffix(args=args)
 
     # render landing index page providing login form
     save_file(
-        filename=Path(f"{deploy_location}/index.php"),
-        content=render(env=_env, template=_php_index_template, content={"no_login": True}),
+        filename=Path(f"{deploy_location}/index.{web_file_suffix}"),
+        content=render(
+            env=env,
+            template="index.php.template",
+            content={
+                "no_login": True,
+                "base_template": "base.php.template",
+            }
+        ),
     )
 
     password = args.password
@@ -166,22 +161,98 @@ def main() -> int:
     # render auth file with custom password
     save_file(
         filename=Path(f"{deploy_location}/php/auth.php"),
-        content=render(env=_env, template=_php_auth_template, content={"generated_password_hash": php_hash, "username": args.username}),
+        content=render(
+            env=env,
+            template="auth.php.template",
+            content={
+                "generated_password_hash": php_hash,
+                "username": args.username,
+                "base_template": "base.php.template",
+            }),
     )
 
-    # copy php folder and the files contained
-    copytree(
-        src=_template_folder / "php",
-        dst=Path(f"{deploy_location}/php"),
-        dirs_exist_ok=True
+
+def render_default_files(args: Args) -> None:
+    repo_root, deploy_location = resolve_paths(args=args)
+    web_file_suffix = get_web_file_suffix(args=args)
+    ibom_file = (repo_root / args.ibom_file).resolve()
+    public = args.public
+    logger.debug(f"iBOM: {ibom_file}")
+
+    # render changelog page
+    html_changelog = markdown(read_file(filename=Path(f"{repo_root}/changelog.md")))
+    save_file(
+        filename=Path(f"{deploy_location}/changelog.{web_file_suffix}"),
+        content=render(
+            env=env,
+            template="base.php.template",
+            content={
+                "content": html_changelog,
+                "base_template": "base.php.template",
+                "public": public
+            }
+        ),
     )
 
-    # copy static folder and the files contained
-    copytree(
-        src=_template_folder / "static",
-        dst=Path(f"{deploy_location}/static"),
-        dirs_exist_ok=True
+    # render ibom page
+    html_ibom = read_file(filename=ibom_file)
+    save_file(
+        filename=Path(f"{deploy_location}/ibom.{web_file_suffix}"),
+        content=render(
+            env=env,
+            template="base.php.template",
+            content={
+                "content": html_ibom,
+                "base_template": "base.php.template",
+                "public": public
+            }
+        ),
     )
+
+def main() -> int:
+    """Entry point for everything else"""
+    args = parse_args()
+
+    log_level = LOG_LEVELS[min(args.verbose, max(LOG_LEVELS.keys()))]
+    logger.setLevel(level=log_level)
+    logger.debug(f"{args}, {log_level}")
+
+    repo_root = args.root.resolve()
+    deploy_location = args.output.resolve()
+    public = args.public
+    logger.debug(f"Repo root: {repo_root}")
+    logger.debug(f"Deploy location: {deploy_location}")
+    logger.debug(f"Is public: {public}")
+
+    kicad_files = [x for x in repo_root.glob("*.kicad_pro") if x.is_file()]
+    assert len(kicad_files) == 1
+    logger.debug(f"Found KiCAD project file: {kicad_files[0]}")
+    project_name = kicad_files[0].stem
+
+    web_file_suffix = get_web_file_suffix(args=args)
+    content = {
+        "title": project_name,
+        "schematic_name": f"{project_name}.pdf",
+        "base_template": "base.php.template",
+        "public": public
+    }
+
+    # render overview page, default after successful login
+    save_file(
+        filename=Path(f"{deploy_location}/{'index' if public else 'overview'}.{web_file_suffix}"),
+        content=render(
+            env=env,
+            template="overview.php.template",
+            content=content,
+        ),
+    )
+
+    if not public:
+        render_login_files(args=args)
+
+    render_default_files(args=args)
+
+    copy_static_files(template_folder=_template_folder, deploy_location=deploy_location, public=public)
 
     return 0
 
