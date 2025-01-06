@@ -1,6 +1,6 @@
 # PCBA Helper
 
-[![Downloads](https://pepy.tech/badge/pcba-helper)](https://pepy.tech/project/pcba-helper)
+[![PyPI Downloads](https://static.pepy.tech/badge/pcba-helper)](https://pepy.tech/projects/pcba-helper)
 ![Release](https://img.shields.io/github/v/release/brainelectronics/pcba_helper?include_prereleases&color=success)
 ![Python](https://img.shields.io/badge/Python-3.9%20|%203.10%20|%203.11-green.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
